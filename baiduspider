@@ -1,0 +1,35 @@
+# -*- coding:utf-8 -*-
+import requests
+import re
+from concurrent.futures import ThreadPoolExecutor
+import time
+import random
+headers = {
+    'Host': 'butian.360.cn',
+    'Upgrade-Insecure-Requests': '1',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Referer': 'http://www.chsi.com.cn/cet/',
+    'Accept-Encoding': 'gzip, deflate',
+    'Accept-Language': 'zh-CN,zh;q=0.8',
+    'Cookie':'JSESSIONID=D49805FF53AD7105F6C6A1BCF67387E8; _ga=GA1.3.335937534.1513612838; __utmt=1; aliyungf_tc=AQAAADirO1gElQcApwevtJb4QmAE+pjk; acw_tc=AQAAAGP1OwFWowcApwevtEhw8Rhu3qwX; __utma=65168252.335937534.1513612838.1519816207.1519824750.3; __utmb=65168252.3.10.1519824750; __utmc=65168252; __utmz=65168252.1513612838.1.1.utmcsr=hntky.com|utmccn=(referral)|utmcmd=referral|utmcct=/',
+    'Connection': 'close'}
+
+def run(url):
+    try:
+        time.sleep(random.randint(3,8))
+        r = requests.get(url,headers=headers,timeout=5)
+        print('当前爬行到第{}页'.format(url.replace('https://butian.360.cn/Loo/index/p/', '').replace('.html', '')))
+        res = re.findall('a href="/Company/u/.*?">(.*?)</a>.*?的一个(.*?)</span>.*?="loopHigh">(.*?)</strong><span',r.text,re.S|re.I)
+        for x in res:
+            with open('result.txt','a+',encoding='utf-8')as a:
+                a.write(str(x) + '\n')
+    except Exception as e:
+        print(e)
+        run(url)
+
+if __name__ == '__main__':
+    tasks = ['https://butian.360.cn/Loo/index/p/{}.html'.format(id) for id in range(1,10)]
+    # 只要10条网页的数据即可
+    with ThreadPoolExecutor(10) as p:
+        res= [p.submit(run,url) for url in tasks]
